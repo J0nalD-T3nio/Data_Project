@@ -80,8 +80,10 @@ def pipeline() -> None:
         df = reads_csv(source_config)
         df.to_csv(file_name, index=False)
 
+        print(f"{file_name} is uploaded.")
         upload_to_ftp(sftp,file_name)
 
+        print(f"{file_name} to be removed.")
         delete_file(file_name)
 
 if __name__ == '__main__':
