@@ -3,3 +3,6 @@ pandas
 psycopg
 pyarrow
 schedule
+rapidfuzz
+fastapi[all]
+orjson
