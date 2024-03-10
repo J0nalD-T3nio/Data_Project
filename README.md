@@ -36,8 +36,8 @@ I am open for criticism, comments, and suggestions in enhancement of the project
 
 ## Credits
 
-Thank you for sir [Josh Dev](https://www.facebook.com/profile.php?id=100087019650476) for creating this series in inspiring and teaching people wanting to enter the field of data.
---[Youtube Account](https://www.youtube.com/@joshvaldeleon3138)
+Thank you for sir [Josh Dev](https://www.facebook.com/profile.php?id=100087019650476) for creating this series in inspiring and teaching people wanting to enter the field of data.<br />
+--[Youtube Account](https://www.youtube.com/@joshvaldeleon3138)<br />
 --[LinkedIn Profile](https://www.linkedin.com/in/josh-valdeleon-2a8984150/)
 
 ## License
