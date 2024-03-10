@@ -24,6 +24,7 @@ This repository showcases an end-to-end data project that demonstrates a develop
 - Visual Studio SSIS
 - PostgreSQL
 - FastAPI
+- Tailwind CSS (For designing API)
 - Power BI
 - R (Tidyverse)
 - scikit-learn
