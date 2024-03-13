@@ -1,6 +1,6 @@
 sqlalchemy
 pandas
-psycopg
+psycopg2
 pyarrow
 schedule
 rapidfuzz
