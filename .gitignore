@@ -6,5 +6,5 @@
 /BasicSSIS
 /LearningSSIS
 /__pycache__
-/tailwindcss
-/static
+/table_headers.json
+/request_logs.json
