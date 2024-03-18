@@ -1,24 +1,18 @@
 """     This is The API for providing interface in accessing data     """
 
 import re
+import datetime
 from os import getenv
 import psycopg2
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, Engine
-from sqlalchemy import URL
+from sqlalchemy import create_engine, Table, MetaData
+from sqlalchemy import URL, insert
 from rapidfuzz import fuzz
-from fastapi import FastAPI, Request
-from fastapi.responses import ORJSONResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.gzip import GZipMiddleware
+from fastapi import FastAPI
 
 # Creatomg the Instance of a Screening API
 screen_app: FastAPI = FastAPI()
-
-# Front-end Design Stuff
-screen_app.add_middleware(GZipMiddleware)
-templates: Jinja2Templates = Jinja2Templates(directory="templates")
 
 # Function for getting the table from Postgres
 def get_consolidated_table() -> pd.DataFrame:
@@ -127,12 +121,89 @@ def format_data(sdn_name: pd.Series) -> pd.Series:
 
     return sdn_name
 
+def log_request(request_name1: str, response: bool):
+    """
+    Summary:
+        Function to log API requests in the PostgreSQL database.
+
+    Args:
+        request_name1 (str): The name of the request.
+        response (bool): Whether the API responded with data or not.
+
+    Returns:
+        None
+    """
+    try:
+        # Get DB Variables
+        pg_host = getenv("DB_HOST")
+        pg_port = getenv("DB_PORT")
+        pg_name = getenv("DB_NAME")
+        pg_user = getenv("DB_USER")
+        pg_key = getenv("DB_PASS")
+
+        # Define a connection string to Postgres DB
+        connection_str = URL.create(
+            drivername="postgresql+psycopg2",
+            username=pg_user,
+            password=pg_key,
+            host=pg_host,
+            port=pg_port,
+            database=pg_name
+        )
+
+        # Create an engine object
+        engine = create_engine(url=connection_str)
+
+        # Get the current date and time
+        current_datetime = datetime.datetime.now()
+        request_date1 = current_datetime.strftime("%B-%d-%Y__%I:%M %p")
+        api_response1 = "WITH RESPONSE" if response else "NO RESPONSE"
+
+        # Reflect the api_request_logs table
+        metadata = MetaData()  # No need to pass the engine here
+        api_request_logs = Table('api_request_logs', metadata, autoload_with=engine)
+
+        # Get a connection from the engine
+        with engine.connect() as conn:
+            # Insert the log data into the api_request_logs table
+            stmt = insert(api_request_logs).values(
+                    request_date=request_date1,
+                    request_name=request_name1,
+                    api_response=api_response1
+                    )
+            conn.execute(stmt)
+            conn.commit()
+
+    except Exception as e:
+        print(f"Error logging request: {e}")
+
 @screen_app.get("/")
-async def root(request: Request):
-    return templates.TemplateResponse("screen.html",{"request":request, "response": {"data": []}})
+async def root():
+    """
+    Summary:
+        For Learning Purposes
+
+    Returns:
+        Status: For Learning Purposes
+    """
+    return { "STATUS":"SUCCESSFUL" }
 
 @screen_app.get("/screen")
 async def screen(name: str, threshold: float = 0.7):
+    """
+    Summary:
+        Functions for the logic of the Screening API
+        
+
+    Args:
+        name (str): The Name to be searched
+        threshold (float, optional): 
+                Threshold for similarity between name argument
+                and names in the table. Defaults to 0.7.
+
+    Returns:
+        _type_: _description_
+    """
     cleaned_name = cleanning_names(name)
     sanctions = get_consolidated_table()
 
@@ -164,13 +235,25 @@ async def screen(name: str, threshold: float = 0.7):
     print(sanctions["similarity_score"])
 
     # Handle potential empty response
+
+    response_data = {}
+    response = False
+
     if sanctions_filtered.empty:
-        return {
+        response_data = {
             "status": "info",
             "message": "No matches found based on the provided name and threshold."
         }
+        response = False
+    else:
+        # Prepare response dictionary
+        response_data = {
+            "STATUS": "SUCCESSFUL",
+            "RESPONSE": sanctions_filtered.fillna("-").to_dict(orient="records")
+        }
+        response = True
 
-    # Prepare response dictionary
-    response = sanctions_filtered.fillna("-").to_dict(orient="records")
+    # Log the request
+    log_request(request_name1=name, response=response)
 
-    return response
+    return response_data
